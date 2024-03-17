@@ -212,7 +212,8 @@ export const jsonData = async (): Promise<{ data: any, playerCount: any }> => {
 
 export const sendRequest = async (method: string, route: string, data?: any): Promise<any> => {
 	let response: AxiosResponse;
-	const baseRoute = "http://vibrant-darwin.37-60-246-29.plesk.page:8000/";
+
+	const baseRoute = "http://localhost:8000/";
 	const trueRoute = baseRoute + route;
 	axios.defaults.withCredentials = true;
 	const headers = {

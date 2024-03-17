@@ -11,8 +11,8 @@ export default {
 	event: "ready",
 	listener: async (client: Bot) => {
 		console.log(chalk.yellowBright(`${client.user?.tag} is ready!`));
-
 		await client.application?.commands.set(client.commands.map((command) => command.data));
+		console.log('test dev')
 
 
 		let currentActivity = 0;
@@ -46,7 +46,7 @@ export default {
 		};
 
 
-		setTimeout(() => {
+
 			const updatedActivity = async () => {
 				const requests = [
 					await fetchSafe("stats/stats/json/conti"),
@@ -88,6 +88,8 @@ export default {
                 event?: any;
             } = {};
 
+
+/*
 			let previousHealth: any = null;
 
 			const sendHealthDataToApî = async () => {
@@ -122,8 +124,11 @@ export default {
 
 			};
 			sendHealthDataToApî();
+
 			setInterval(sendHealthDataToApî, 160000);
-		}, 60000);
+	 *
+
+ */
 
 
 	},

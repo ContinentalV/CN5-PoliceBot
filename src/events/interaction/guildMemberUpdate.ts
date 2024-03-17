@@ -26,12 +26,13 @@ export default {
 
 			const relevantRoleAdded = newRoles.some(role =>
 				Object.values(companyRolesIds).some(rolesArray => rolesArray.includes(role.id)));
-
+			console.log(relevantRoleAdded)
 			if (relevantRoleAdded) {
 				body.role = newRoles.map((r) => r.id)[0];
+
 			}
 			else {
-				console.log("Rôle secondaire ajouté, aucune action nécessaire.");
+
 				return;
 			}
 		}
