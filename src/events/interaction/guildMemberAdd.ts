@@ -63,7 +63,7 @@ export default {
 			const matriculesFiltered = matriculesArray.filter((matricule: number | null) => matricule !== null) as number[];
 			const newMatricule = generateUniqueMatricule(matriculesFiltered);
 			body.matricule = newMatricule ?? 0;
-			member.setNickname(`Cadet-${newMatricule} | Nom`);
+			member.setNickname(`Cadet/deputy-${newMatricule} | Nom`);
 
 			const lspdDM: string = `Bienvenue dans la LSPD, Cadet **${body.matricule}**
 

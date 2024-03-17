@@ -13,11 +13,7 @@ export default {
 		console.log(chalk.yellowBright(`${client.user?.tag} is ready!`));
 		await client.application?.commands.set(client.commands.map((command) => command.data));
 		console.log('test dev')
-
-
 		let currentActivity = 0;
-
-
 		const fetchSafe = async (url: string, options: any = null): Promise<{
             success: boolean;
             data?: any;
@@ -44,9 +40,6 @@ export default {
 			}
 
 		};
-
-
-
 			const updatedActivity = async () => {
 				const requests = [
 					await fetchSafe("stats/stats/json/conti"),

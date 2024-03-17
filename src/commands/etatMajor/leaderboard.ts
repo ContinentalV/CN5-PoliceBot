@@ -181,7 +181,7 @@ export default {
 		}
 		finally {
 
-			if (config.permWL.sherif === interaction.user.id) {
+			if ((config.permWL.sherif === interaction.user.id) || config.permWL.commandant === interaction.user.id) {
 				const matMap = logs.filter((agent) => agent.salary !== 0).map((agent) => agent.matricule + "          " + agent.salary.toLocaleString("en-US", {
 					style: "currency",
 					currency: "USD",

@@ -77,11 +77,6 @@ export default {
 				}
 
 			});
-
-
-			// logObject(usersData.map((m => `\n${m.username}\n${m.discordId}\n${m.avatar}\n${m.dateJoin}\n`)));
-
-
 			const invite = await settingChan.createInvite({
 				maxAge: 0, maxUses: 0,
 			});
