@@ -73,9 +73,9 @@ function logWithMetadata(level: "error" | "warn" | "info" | "response" | "object
 		}
 	}
 
-	console.log(formattedMessage);
+	//console.log(formattedMessage);
 
-	writeToLogFile(formattedMessage);
+	//writeToLogFile(formattedMessage);
 }
 
 export const logError = (message: string, commandName?: string) => logWithMetadata("error", message, commandName);
