@@ -3,6 +3,7 @@ import Bot from "./core/client";
 import { config } from "dotenv";
 import { GatewayIntentBits, Partials } from "discord.js";
 
+
 // Initialize configuration with debug mode
 config({ debug: true });
 
@@ -31,4 +32,5 @@ config({ debug: true });
 
 	// Start the bot
 	await bot.start();
+
 })();

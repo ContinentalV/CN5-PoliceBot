@@ -5,6 +5,7 @@ import { mkdirSync } from "fs";
 import { ButtonOptions, CommandOptions, EventOptions } from "../types";
 import { ClientEvents } from "discord.js";
 import { logCommandCharged, logEventCharged } from "../functions/chalkFn";
+import chalk from "chalk";
 
 export default class Handlers {
 	private readonly client: Bot;
@@ -28,7 +29,9 @@ export default class Handlers {
 			for (const file of files) {
 				const command: CommandOptions = (await import(join(path, folder, file))).default;
 				this.client.commands.set(command.data.name, command);
-				logCommandCharged(`Loaded command ${command.data.name}`);
+				logCommandCharged(`Loaded command ${command.data.name} - Category ${folder}`);
+				console.log(chalk.bgGreen.black(' LOADED '), chalk.white(`${chalk.bgBlueBright.black(' Command ')}::${chalk.bold.yellow(folder)}::${chalk.bold.blue(command.data.name)} -`));
+
 			}
 		}
 	}
@@ -51,6 +54,8 @@ export default class Handlers {
 					});
 				}
 				logEventCharged(`Loaded event ${event.event}`);
+				console.log(chalk.bgGreen.black(' LOADED '), chalk.white(`${chalk.bgCyanBright.black(' Event ')}::${chalk.bold.yellow(folder)}::${chalk.bold.blue(event.event)} -`));
+
 			}
 		}
 	}

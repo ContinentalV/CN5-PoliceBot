@@ -1,10 +1,11 @@
 import Handlers from "./handlers";
-import { Client, ClientOptions, Collection, Snowflake } from "discord.js";
-import { ButtonOptions, CommandOptions } from "../types";
+import {Client, ClientEvents, ClientOptions, Collection, Snowflake} from "discord.js";
+import { ButtonOptions, CommandOptions, EventOptions } from "../types";
 
 
 export default class Bot extends Client {
 	public commands: Collection<string, CommandOptions> = new Collection();
+	public events: Collection<string,  EventOptions<keyof ClientEvents>> = new Collection();
 	public buttons: Collection<string, ButtonOptions> = new Collection(); // Ajout de la collection de boutons
 	public cooldowns: Collection<string, Collection<Snowflake, number>> = new Collection();
 	private readonly handlers = new Handlers(this);

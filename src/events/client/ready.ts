@@ -7,15 +7,15 @@ import { logError } from "../../functions/chalkFn";
 import { areObjectsEqual, monitorEventListeners, sendRequest } from "../../functions/utilsFunctions";
 import Bot from "../../core/client";
 
+
 export default {
 	event: "ready",
 	listener: async (client: Bot) => {
 		console.log(chalk.yellowBright(`${client.user?.tag} is ready!`));
-
 		await client.application?.commands.set(client.commands.map((command) => command.data));
-
-
 		let currentActivity = 0;
+	 
+
 
 
 		const fetchSafe = async (url: string, options: any = null): Promise<{
@@ -27,8 +27,7 @@ export default {
 			try {
 				// const response = await axios.get(url, options);
 				const response = await sendRequest("get", url, options);
-
-				return { success: true, data: response };
+			 	return { success: true, data: response };
 			}
 			catch (e) {
 				if (e instanceof AxiosError) {
@@ -56,6 +55,7 @@ export default {
 
 				const results = await Promise.allSettled(requests);
 				const responses = results.map(result => {
+
 					if (result.status === "fulfilled" && result.value.success) {
 						return result.value.data;
 					}
@@ -99,7 +99,7 @@ export default {
 				};
 				const eventData = monitorEventListeners(client);
 
-				// TODO FIX UPDATE COMMANDE QUI SE CLEAR PAS DASH BOT DISCORD REAL TIM UPDATE
+
 				if (!areObjectsEqual(currentHealthData, previousHealth)) {
 
 					previousHealth = currentHealthData;
@@ -109,8 +109,8 @@ export default {
 
 					try {
 
-						const response = await axios.post("http://localhost:8000/health/bot", body);
-						console.log(response?.data?.message);
+						const response = await sendRequest("post", "health/bot", body)
+
 					}
 					catch (e) {
 						console.log(e);
@@ -121,9 +121,10 @@ export default {
 				}
 
 			};
-			sendHealthDataToApî();
-			setInterval(sendHealthDataToApî, 160000);
+		//	sendHealthDataToApî();
+		//	setInterval(sendHealthDataToApî, 160000);
 		}, 60000);
+
 
 
 	},

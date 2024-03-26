@@ -212,7 +212,7 @@ export const jsonData = async (): Promise<{ data: any, playerCount: any }> => {
 
 export const sendRequest = async (method: string, route: string, data?: any): Promise<any> => {
 	let response: AxiosResponse;
-	const baseRoute = "http://vibrant-darwin.37-60-246-29.plesk.page:8000/";
+	const baseRoute = process.env.CUSTOM_ENV === "production" ? "https://continentalv.fr/" :  "http://localhost:8000/"
 	const trueRoute = baseRoute + route;
 	axios.defaults.withCredentials = true;
 	const headers = {
@@ -250,7 +250,11 @@ export const sendRequest = async (method: string, route: string, data?: any): Pr
 		return response.data;
 	}
 	catch (error) {
-		console.error(`Error ${method.toUpperCase()}ing data:`, error);
+		//console.error(`Error ${method.toUpperCase()}ING data:`, error);
 		throw error;
 	}
 };
+
+export function generateLogMessage(userId: string, userName: string, action: string, success: boolean, result?: any) {
+	return `User ID: ${userId}, User Name: ${userName}, Action: ${action}, Success: ${success}, ${ result ? ` Result: ${JSON.stringify(result) }` : " "}`;
+}

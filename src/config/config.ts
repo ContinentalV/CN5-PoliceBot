@@ -28,6 +28,8 @@ interface IConfig {
     initRoles: IInitRoles
     role: any;
     webAccess: IWebAccess,
+	serviceOnOff: servicePermChannel
+	colorState: colorState
 }
 
 // Objet de configuration exporté
@@ -52,12 +54,30 @@ export const config: IConfig = {
 	},
 	initRoles: {
 		rolesLspd: ["621711885456375848", "844988688886267964", "621716298598187008", "919582292060545084"],
-		rolesBcso: ["1147211942759518312", "1147211942742736905", "1147211942663032945", "1147211942663032947 "],
+		rolesBcso: ["1147211942759518312", "1147211942742736905", "1147211942663032945", "1147211942663032947"],
 	},
 
 	webAccess: {
 		lspd: "916440191080751165",
-		bcso: "1147211942797262945",
+		bcso: "1218977832286425248",
+	},
+	serviceOnOff: {
+		bcso: {
+			on: "1147211942663032944",
+			off: "1147211942663032943",
+			},
+		lspd: {
+			on: "907707270895394827",
+			off: "907707457772597268",
+		}
+
+	},
+	colorState: {
+		success: "#3ed108",
+		error: "#d10816",
+		warning: "#ed9702",
+		info: "#19a7fa",
+		random: "Random",
 	},
 
 	role: {},
@@ -73,4 +93,21 @@ interface IWebAccess {
     bcso: string,
 
 }
+interface servicePermChannel {
+	bcso: {
+		on:string,
+		off: string
+	},
+	lspd: {
+		on: string,
+		off: string,
+	}
+}
 
+interface colorState {
+	success: string,
+	error: string,
+	warning: string,
+	info: string,
+	random: string
+}

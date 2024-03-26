@@ -7,8 +7,8 @@ import { EmbedBuilder } from "discord.js";
 import { config } from "../../config/config";
 
 
-// TODO peut etre devoir ajouter de mettre le role vu qu'il rejoint le serveur il en a pas.
-// TODO quand membre rejoins serveur => mettre role, renomer, ajouter le necessaire.
+
+
 export default {
 	event: "guildMemberAdd",
 	listener: async (client: Bot, member) => {
@@ -18,14 +18,20 @@ export default {
 		let channel: any;
 		let bcsoRoles;
 		let lspdRoles;
+		let nicknameCategory;
 		let roleInitToAdd: any = [];
 		if (guildAcr.toUpperCase() === "LSPD") {
+			console.log("LSPD")
+
 			channel = member.guild.channels.cache.get(config.channel.logsMsgLSPD);
 			roleInitToAdd = config.initRoles.rolesLspd;
+			nicknameCategory = "Cadet"
 		}
 		else if (guildAcr.toUpperCase() === "BCSO") {
+			console.log("BCSO")
 			channel = member.guild.channels.cache.get(config.channel.logsMsgBCSO);
 			roleInitToAdd = config.initRoles.rolesBcso;
+			nicknameCategory = "Deputy-Trainee"
 
 		}
 
@@ -63,9 +69,9 @@ export default {
 			const matriculesFiltered = matriculesArray.filter((matricule: number | null) => matricule !== null) as number[];
 			const newMatricule = generateUniqueMatricule(matriculesFiltered);
 			body.matricule = newMatricule ?? 0;
-			member.setNickname(`Cadet-${newMatricule} | Nom`);
+			member.setNickname(`${nicknameCategory}-${newMatricule} | Nom`);
 
-			const lspdDM: string = `Bienvenue dans la LSPD, Cadet **${body.matricule}**
+			const lspdDM: string = `Bienvenue dans la LSPD, ${nicknameCategory} **${body.matricule}**
 
 > Où l'engagement et le professionnalisme sont nos mots d'ordre. Ensemble, nous veillons à la sécurité et à la tranquillité de Los Santos. Prêt à servir avec honneur et intégrité ? Nous sommes ravis de t'avoir à bord ! 🚔👮‍♂️🌟
 
@@ -76,18 +82,28 @@ export default {
 
 Cordialement, 
 Commdandant Magnum `;
+
+const BCSODM = `
+**Bienvenue chez la BCSO,** ${nicknameCategory} ${body.matricule}
+
+Nous vous souhaitons une bonne carrière au sein de la bcso. 
+Pour toute question ou des renseignements, merci :
+- de lire le salon <#1147211944747618369> 
+- ou de faire un ticket <#1147211944747618366>  
+- ou d'aller voir un membre du __l'Etat Major__. 
+
+Cordialement Le Shériff
+
+`
 			embedDM.setTitle("Bienvenue! ");
-			embedDM.setDescription(`${guildAcr === "LSPD" ? lspdDM : "PAS ENCORE FAIT"}`);
+			embedDM.setDescription(`${guildAcr === "LSPD" ? lspdDM : BCSODM }`);
 			embedDM.setColor("Random");
 			embedDM.setTimestamp();
 			embedDM.setThumbnail(member?.displayAvatarURL({ dynamic: true } as any));
 
 			embedWelcomServer.setColor(guildAcr === "LSPD" ? "Blue" : "DarkOrange");
 			embedWelcomServer.setTimestamp();
-			embedWelcomServer.setThumbnail(member?.displayAvatarURL({ dynamic: true } as any));
-			embedWelcomServer.setDescription(`Bienvenue au nouveau cadet ${body.matricule}! Acceuillons le comme il se doit! `);
-
-
+			embedWelcomServer.setFooter({text: `Bienvenue au nouveau ${lspdOrBcso} -> ${nicknameCategory} ${body.matricule}`, iconURL: member.displayAvatarURL()})
 			const response2 = await sendRequest("post", "members/members", body);
 			logApiResponse(`${response2}`);
 
@@ -100,7 +116,7 @@ Commdandant Magnum `;
 			embedWelcomServer.setColor("Red");
 		}
 		finally {
-			await channel.send({ embeds: [embedWelcomServer] });
+			await channel.send({ embeds: [embedWelcomServer], content: `${member}` });
 			await member.send({ embeds: [embedDM] });
 		}
 	},

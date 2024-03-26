@@ -29,8 +29,7 @@ export default {
 			console.log(result);
 			embed.setColor("Random");
 			embed.setTimestamp();
-			embed.setThumbnail(member.displayAvatarURL());
-			embed.setDescription(`L'agent ${member.nickname} - <@${idTarget}> - vient de quitté le serveur.  `);
+			embed.setFooter({text:`L'agent | ${member.nickname ? member.nickname : member.user.username} | vient de quitté le serveur.`, iconURL: member.displayAvatarURL()})
 		}
 		catch (err) {
 			if (axios.isAxiosError(err) && err.response) {
@@ -47,7 +46,7 @@ export default {
 			}
 		}
 		finally {
-			await (channel as TextChannel).send({ embeds: [embed] });
+			await (channel as TextChannel).send({ embeds: [embed], content: `${member}` });
 
 		}
 

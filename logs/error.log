@@ -1,0 +1,5 @@
+26-03-2024 | 07:18:52 |::| error |::| connect ECONNREFUSED ::1:8000 | Error ID: d5be4a1d-f461-4b60-94b5-cf304866cdb2
+26-03-2024 | 07:19:36 |::| error |::| connect ECONNREFUSED ::1:8000 | Error ID: d88b1287-20da-488a-b837-f1dbc0d6b6e4
+26-03-2024 | 07:21:01 |::| error |::| connect ECONNREFUSED ::1:8000 | Error ID: e82b7c9c-d57a-4823-842e-2e1eec7c7db4
+26-03-2024 | 07:22:19 |::| error |::| connect ECONNREFUSED ::1:8000 | Error ID: 94f44f7e-e34c-414c-8232-b5649d08d419
+26-03-2024 | 07:22:42 |::| error |::| connect ECONNREFUSED ::1:8000 | Error ID: b5d60a77-7a85-44d6-afd6-0b60fccee648
