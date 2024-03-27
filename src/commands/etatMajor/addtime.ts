@@ -1,9 +1,12 @@
-import { CommandOptions } from "../../types";
-import { ApplicationCommandOptionType } from "discord-api-types/v10";
-import { logApiResponse } from "../../functions/chalkFn";
+import {CommandOptions} from "../../types";
+import {ApplicationCommandOptionType} from "discord-api-types/v10";
+import {logApiResponse} from "../../functions/chalkFn";
 import axios from "axios";
-import { EmbedBuilder } from "discord.js";
-import { sendRequest } from "../../functions/utilsFunctions";
+import {EmbedBuilder, ColorResolvable, GuildMember} from "discord.js";
+import {generateLogMessage, sendRequest} from "../../functions/utilsFunctions";
+import {errorLogger, mainLogger} from "../../logger";
+import {config} from "../../config/config";
+import {v4 as uuidv4} from "uuid";
 
 export default {
 	data: {
@@ -39,8 +42,9 @@ export default {
 	cooldown: 5000,
 	execute: async (client, interaction, args) => {
 
+		let success = false;
+		let statusRequest
 		const embed = new EmbedBuilder()
-			.setColor("Random")
 			.setTimestamp()
 			.setFooter({
 				text: `Request by ${interaction.user.username}`,
@@ -48,7 +52,6 @@ export default {
 			});
 		const user = args.getUser("agent");
 		const targetId = user ? user.id : null;
-
 		const body = {
 			temps: args.getNumber("temps"),
 			targetId: targetId,
@@ -56,20 +59,49 @@ export default {
 		};
 
 		try {
-			const response = await sendRequest("put", "service/add", body);
-			const data = response;
+			const data = await sendRequest("put", "service/add", body);
+			success = true;
+			statusRequest = data.message;
+			const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+			mainLogger.info(logMessage);
+
 			embed.setFields({
 				name: "Mise a jour des heures pour l'agent: ",
 				value: `${args.getUser("agent")}\n\`\`${data.message}\`\` `,
 			});
-			logApiResponse(data.message);
+
+
 		}
-		catch (err) {
+		catch (err: any) {
+			success = false;
 			if (axios.isAxiosError(err) && err.response) {
 				embed.setFields({ name: "📛 - Erreur lors de la requette:", value: `${err.response.data.message}` });
+				statusRequest = err.response.data.message;
+				const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest + " - " + err.response.data.errorId + " error on API");
+				mainLogger.warn(logMessage);
+				embed.setFooter({text: `📍 errorId: ${ err.response.data.errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
+			} else {
+				const errorId = uuidv4();
+				errorLogger.error({ message: err.message, errorId });
+				statusRequest = "❌ Pas de communications avec la base de données";
+				embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 			}
 		}
 		finally {
+			if (!(!(interaction.member instanceof GuildMember) || interaction.member.partial)) {
+				embed.setDescription(`
+ \`\`\`diff
+${success ? "+ " : "- " }★・・・・・・・★・・${success? "SUCCESS" :"ERROR" }・・★・・・・・・・★ \`\`\`				
+- \`\`|📢| Commands:\`\`   \`\` /${interaction.commandName}  \`\`
+- \`\`|👮| Agent:\`\`  \`\`${interaction.member.nickname}  \`\` - ${interaction.member}
+- \`\`|🪪| DataCommand:\`\`   \`\` ${body.temps} - ${body.targetId} - ${body.mode} \`\` - ${args.getUser("agent")}
+- \`\`|📡| Status:\`\`   \`\`${statusRequest}\`\`  
+
+\`\`\`diff
+${success ? "+ " : "- " }★・・・・・・・★・・・・・・・・★・・・・・・・★ \`\`\`				
+			`)
+			}
+			embed.setColor(success ? config.colorState.success as ColorResolvable : config.colorState.error as ColorResolvable)
 			await interaction.reply({ embeds: [embed] });
 		}
 

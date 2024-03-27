@@ -258,3 +258,24 @@ export const sendRequest = async (method: string, route: string, data?: any): Pr
 export function generateLogMessage(userId: string, userName: string, action: string, success: boolean, result?: any) {
 	return `User ID: ${userId}, User Name: ${userName}, Action: ${action}, Success: ${success}, ${ result ? ` Result: ${JSON.stringify(result) }` : " "}`;
 }
+//TODO FINIR FIX PROGRESS BAR
+export function createProgressBar(percentage:number, barLength = 10) {
+
+	try{
+
+		if ((!percentage)) return "[░░░░░░░░░░░░]"
+		const filledBarLength = Math.round((percentage) / 100) * barLength;
+		console.log(percentage /100 * barLength)
+
+
+		const emptyBarLength = barLength - filledBarLength;
+		console.log(emptyBarLength)
+		const filledBar = '█'.repeat(filledBarLength);
+
+		const emptyBar = '░'.repeat(emptyBarLength);
+		return `[${filledBar}${emptyBar}] | \`${percentage.toFixed(2)}%\``;
+	}catch (e) {
+		console.log(e)
+	}
+
+}

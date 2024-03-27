@@ -1,10 +1,13 @@
 import { CommandOptions } from "../../types";
 import { ApplicationCommandOptionType } from "discord-api-types/v10";
-import { EmbedBuilder, MessageReaction, TextChannel, User } from "discord.js";
+import {ColorResolvable, EmbedBuilder, MessageReaction, TextChannel, User} from "discord.js";
 import { config } from "../../config/config";
-import { collectReactionFunction, expressReplace } from "../../functions/utilsFunctions";
+import {collectReactionFunction, expressReplace, generateLogMessage} from "../../functions/utilsFunctions";
 import { OperationText, reunionText, vacationText } from "../../functions/BCSOContentText";
 import { OperationTextL, reunionTextL } from "../../functions/LSPDContentText";
+import axios from "axios";
+import {errorLogger, mainLogger} from "../../logger";
+import {v4 as uuidv4} from "uuid";
 
 export default {
 	data: {
@@ -51,9 +54,7 @@ export default {
 	execute: async (client, interaction, args) => {
 
 		const choiceAnnonce = args.getString("selection-annonce");
-		console.log(choiceAnnonce);
 		const company = interaction.guild ? interaction.guild.nameAcronym : "no guilds";
-
 		const date = args.getString("date");
 		const time = args.getNumber("heure");
 		const minute: string = args.getString("min") || "Pas de minute renseigner";
@@ -62,14 +63,13 @@ export default {
 		const collectorFilter = (reaction: MessageReaction, user: User) => {
 			return (reaction.emoji.name === "✅" && !user.bot) || (reaction.emoji.name === "❌" && !user.bot);
 		};
-
 		// TRAITEMENT DATA
 		if (company === "BCSO") {
-			// DATA BCSO
+			let success = false;
+			let statusRequest;
 			const channel = interaction.guild!.channels.cache.get(config.channelsMsg.reunionB) || null;
 			const logsChannel = interaction.guild!.channels.cache.get(config.channelsMsg.logsB) || null;
-
-			tag = "1147211942663032945";
+			tag = config.tagRole.bcso;
 			const x = interaction.guild!.roles.cache.find((r) => r.id === tag);
 			const embed = new EmbedBuilder()
 				.setColor("Random")
@@ -80,7 +80,6 @@ export default {
 				.setTimestamp();
 
 			if (choiceAnnonce === "meeting") {
-
 				embed.setTitle("ANNONCE REUNION / REMISE DES PAYES / MONTEES EN GRADES");
 				const dateNonNull = date ?? "Date non renseignée";
 				// @ts-ignore
@@ -90,9 +89,8 @@ export default {
 					content: `${x}`,
 					embeds: [embed],
 					allowedMentions: { parse: ["everyone", "roles"] },
-					fetchReply: true,
+					fetchReply: true,} as any);
 
-				} as any);
 
 				try {
 					await annonce.react("✅");
@@ -103,12 +101,20 @@ export default {
 						dispose: true,
 					});
 					await collectReactionFunction(collector, logsChannel, choiceAnnonce);
-				}
-				catch (e) {
-					console.log(e);
+					success = true;
+					statusRequest = "✅ Annonce envoyée avec succès";
+					const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+					mainLogger.info(logMessage);}
+				catch (err: any) {
+						success = false
+						const errorId = uuidv4();
+						errorLogger.error({ message: err.message, errorId });
+						statusRequest = "❌ Une erreur est survenue lors de l'envoie de l'annonce";
+						embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
+
 				}
 				finally {
-					await interaction.reply({ content: `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}` });
+					await interaction.reply({ content: success ? `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}` : statusRequest });
 				}
 			}
 			else if (choiceAnnonce === "OP") {
@@ -134,24 +140,25 @@ export default {
 						dispose: true,
 					});
 					await collectReactionFunction(collector, logsChannel, choiceAnnonce);
+					success = true;
+					statusRequest = "✅ Annonce envoyée avec succès";
+					const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+					mainLogger.info(logMessage);}
+				catch (err: any) {
+					success = false
+					const errorId = uuidv4();
+					errorLogger.error({ message: err.message, errorId });
+					statusRequest = "❌ Une erreur est survenue lors de l'envoie de l'annonce";
+					embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 
 				}
-				catch (e) {
-					console.log(e);
-					interaction.reply("Error");
-				}
 				finally {
-					await interaction.reply({
-						content: `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}`,
-						ephemeral: true,
-					});
+					await interaction.reply({ content: success ? `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}` : statusRequest });
 				}
 
 
 			}
 			else if (choiceAnnonce === "vacation") {
-
-
 				embed.setTitle("ANNONCE VACATION");
 				// @ts-ignore
 				embed.setDescription(expressReplace(vacationText, date, time, minute));
@@ -171,28 +178,33 @@ export default {
 						dispose: true,
 					});
 					await collectReactionFunction(collector, logsChannel, choiceAnnonce);
+					success = true;
+					statusRequest = "✅ Annonce envoyée avec succès";
+					const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+					mainLogger.info(logMessage);}
+				catch (err: any) {
+					success = false
+					const errorId = uuidv4();
+					errorLogger.error({ message: err.message, errorId });
+					statusRequest = "❌ Une erreur est survenue lors de l'envoie de l'annonce";
+					embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 
-
-				}
-				catch (e) {
-					console.log(e);
-					interaction.reply("Error");
 				}
 				finally {
-					await interaction.reply({
-						content: `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}`,
-						ephemeral: true,
-					});
+					await interaction.reply({ content: success ? `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}` : statusRequest });
+
 				}
 			}
 
 
 		}
 		else if (company === "LSPD") {
+			let success = false;
+			let statusRequest;
 			// DATA BCSO
 			const channel = interaction.guild ? interaction.guild.channels.cache.get(config.channelsMsg.reunionL) : null;
 			const logsChannel = interaction.guild ? interaction.guild.channels.cache.get(config.channelsMsg.logsL) : null;
-			tag = "621711885456375848";
+			tag =config.tagRole.lspd
 			const x = interaction.guild!.roles.cache.find((r) => r.id === tag);
 			const embed = new EmbedBuilder()
 				.setColor("Random")
@@ -224,15 +236,22 @@ export default {
 						dispose: true,
 					});
 					await collectReactionFunction(collector, logsChannel, choiceAnnonce);
+					success = true;
+					statusRequest = "✅ Annonce envoyée avec succès";
+					const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+					mainLogger.info(logMessage);
 				}
-				catch (e) {
-					console.log(e);
+				catch (err: any) {
+					success = false
+					const errorId = uuidv4();
+					errorLogger.error({ message: err.message, errorId });
+					statusRequest = "❌ Une erreur est survenue lors de l'envoie de l'annonce";
+					embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
+
 				}
 				finally {
-					await interaction.reply({
-						content: `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}`,
-						ephemeral: true,
-					});
+					await interaction.reply({ content: success ? `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}` : statusRequest });
+
 				}
 			}
 			else if (choiceAnnonce === "OP") {
@@ -256,24 +275,26 @@ export default {
 						dispose: true,
 					});
 					await collectReactionFunction(collector, logsChannel, choiceAnnonce);
+					success = true;
+					statusRequest = "✅ Annonce envoyée avec succès";
+					const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+					mainLogger.info(logMessage);}
+				catch (err: any) {
+					success = false
+					const errorId = uuidv4();
+					errorLogger.error({ message: err.message, errorId });
+					statusRequest = "❌ Une erreur est survenue lors de l'envoie de l'annonce";
+					embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 
 				}
-				catch (e) {
-					console.log(e);
-					interaction.reply("Error");
-				}
 				finally {
-					await interaction.reply({
-						content: `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}`,
-						ephemeral: true,
-					});
+					await interaction.reply({ content: success ? `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}` : statusRequest });
 				}
+
 
 
 			}
 			else if (choiceAnnonce === "vacation") {
-
-
 				embed.setTitle("ANNONCE VACATION");
 				// @ts-ignore
 				embed.setDescription(expressReplace(vacationText, date, time, minute));
@@ -293,26 +314,27 @@ export default {
 						dispose: true,
 					});
 					await collectReactionFunction(collector, logsChannel, choiceAnnonce);
+					success = true;
+					statusRequest = "✅ Annonce envoyée avec succès";
+					const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+					mainLogger.info(logMessage);}
+				catch (err: any) {
+					success = false
+					const errorId = uuidv4();
+					errorLogger.error({ message: err.message, errorId });
+					statusRequest = "❌ Une erreur est survenue lors de l'envoie de l'annonce";
+					embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 
-
-				}
-				catch (e) {
-					console.log(e);
-					interaction.reply("Error");
 				}
 				finally {
-					await interaction.reply({
-						content: `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}`,
-						ephemeral: true,
-					});
+					await interaction.reply({ content: success ? `**Annonce: ${choiceAnnonce}** - Envoyer dans ${channel}` : statusRequest });
 				}
 			}
 
 
 		}
 		else {
-			console.log("en cours");
-
+	await interaction.reply({embeds: [new EmbedBuilder().setTimestamp().setColor(config.colorState.error as ColorResolvable).setDescription(`   \`\`❌ Guild Inconnu => impossible d'envoyer l'annonce.  \`\`  `)] })
 		}
 
 

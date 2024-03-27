@@ -56,9 +56,8 @@ export default {
 		catch (err:any) {
 			success = false;
 			if (axios.isAxiosError(err) && err.response) {
-				const errorMessage = err.response.data.message;			 ;
+				const errorMessage = err.response.data.message;
 				statusRequest = errorMessage;
-
 				const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
 				mainLogger.warn(logMessage);
 
@@ -78,7 +77,7 @@ export default {
 - Service start à: \`\`🕗 ${dayjs(date).format("DD-MM-YYYY | HH:mm:ss")}\`\`  
 - **Status: \`\`${statusRequest}\`\`**  
 			`);
-		embed.setColor(success ? config.colorState.success as ColorResolvable :config.colorState.error as ColorResolvable)
+		embed.setColor(success ? config.colorState.success as ColorResolvable : config.colorState.error as ColorResolvable)
 			  if (interaction.member){
 				  //@ts-ignore
 				  await interaction.member.roles.add(roleToApply)

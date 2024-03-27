@@ -30,6 +30,7 @@ interface IConfig {
     webAccess: IWebAccess,
 	serviceOnOff: servicePermChannel
 	colorState: colorState
+	tagRole: tagRole
 }
 
 // Objet de configuration exporté
@@ -79,6 +80,12 @@ export const config: IConfig = {
 		info: "#19a7fa",
 		random: "Random",
 	},
+	tagRole: {
+		lspd: "621711885456375848",
+		bcso: "1147211942663032945"
+	},
+
+
 
 	role: {},
 };
@@ -110,4 +117,9 @@ interface colorState {
 	warning: string,
 	info: string,
 	random: string
+}
+
+interface tagRole {
+	lspd: string,
+	bcso: string
 }

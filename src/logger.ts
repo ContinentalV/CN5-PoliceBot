@@ -86,7 +86,7 @@ const errorLogger = createLogger({
             level: 'error',
             format: format.combine(
                 format.timestamp({ format: "DD-MM-YYYY | HH:mm:ss" }),
-                format.printf(info => `${info.timestamp} |::| ${info.level} |::| ${info.message} | Error ID: ${uuidv4()}`) // Ajout d'un ID d'erreur unique
+                format.printf(info => `${info.timestamp} |::| ${info.level} |::| ${info.message} | Error ID: ${info.errorId}`) // Ajout d'un ID d'erreur unique
             )
         }),
     ]
