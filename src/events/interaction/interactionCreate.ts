@@ -54,7 +54,7 @@ export default {
 			catch {
 				updateGuildCommandStats(guildId, guildName, interaction.commandName, 0, true);
 				return interaction.reply({
-					content: "There was an error while executing this command!",
+					content: "Une erreur s'est produite lors de l'exécution de cette commande.",
 					ephemeral: true,
 				});
 			}

@@ -65,7 +65,7 @@ export default {
 			else {
 				const errorId = uuidv4();
 				errorLogger.error({ message: err.message, errorId });
-				statusRequest = "Pas de communications avec la base de données";
+				statusRequest = "❌ Pas de communications avec l'API";
 				embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 			}
 

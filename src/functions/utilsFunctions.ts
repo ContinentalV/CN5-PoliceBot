@@ -258,6 +258,9 @@ export const sendRequest = async (method: string, route: string, data?: any): Pr
 export function generateLogMessage(userId: string, userName: string, action: string, success: boolean, result?: any) {
 	return `User ID: ${userId}, User Name: ${userName}, Action: ${action}, Success: ${success}, ${ result ? ` Result: ${JSON.stringify(result) }` : " "}`;
 }
+export function generateLogMessageEvent(client:Bot, userName: string, targetId:string,   success: boolean, result?: any) {
+	return `Event: ${client.eventNames()}, TargetName: ${userName} - TargetId: ${targetId},  Success: ${success}, ${ result ? ` Result: ${JSON.stringify(result) }` : " "}`;
+}
 //TODO FINIR FIX PROGRESS BAR
 export function createProgressBar(percentage:number, barLength = 10) {
 

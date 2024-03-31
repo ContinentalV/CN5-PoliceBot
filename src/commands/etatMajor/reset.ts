@@ -1,9 +1,11 @@
-import { CommandOptions } from "../../types";
-import { ApplicationCommandOptionType } from "discord-api-types/v10";
-import { logApiResponse, logInfo } from "../../functions/chalkFn";
+import {CommandOptions} from "../../types";
+import {ApplicationCommandOptionType} from "discord-api-types/v10";
 import axios from "axios";
-import { EmbedBuilder } from "discord.js";
-import { sendRequest } from "../../functions/utilsFunctions";
+import {ColorResolvable, EmbedBuilder} from "discord.js";
+import {generateLogMessage, sendRequest} from "../../functions/utilsFunctions";
+import {config} from "../../config/config";
+import {errorLogger, mainLogger} from "../../logger";
+import {v4 as uuidv4} from "uuid";
 
 export default {
 	data: {
@@ -28,15 +30,15 @@ export default {
 	category: "etatMajor",
 	cooldown: 5000,
 	execute: async (client, interaction, args): Promise<void> => {
-
+	let statusRequest;
+	let success = false;
 		if (args.getString("confirmation") === "no") {
 			await interaction.reply({ content: "Reset annuler ✅" });
 			return;
 		}
 		const company = interaction.guild!.nameAcronym.toUpperCase();
 		const embed = new EmbedBuilder()
-			.setDescription(`> \`\`Les data des services ${company} ont bien été rénitialiser: ✅\`\` `)
-			.setColor("Random")
+
 			.setTimestamp()
 			.setFooter({
 				text: `Request by ${interaction.user.username}`,
@@ -46,17 +48,26 @@ export default {
 
 		try {
 			const body = { company: company };
-			logInfo(company);
-			const response = await sendRequest("post", "service/resetAll", body);
-			const data = response.data;
-			logApiResponse(data.message);
+			statusRequest = await sendRequest("post", "service/resetAll", body);
+			success = true;
+			const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+			mainLogger.info(logMessage);
 		}
-		catch (err) {
+		catch (err:any) {
 			if (axios.isAxiosError(err) && err.response) {
-				embed.setFields({ name: "📛 - Erreur lors de la requette:", value: `${err}` });
+				statusRequest = err.response.data.message;
+				const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+				mainLogger.warn(logMessage);
+			}else {
+				const errorId = uuidv4();
+				errorLogger.error({ message: err.message, errorId });
+				statusRequest = "❌ Pas de communications avec l'API";
+				embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 			}
 		}
 		finally {
+			embed.setColor(success? config.colorState.success as ColorResolvable : config.colorState.error as ColorResolvable)
+		 	embed.setDescription(`## Reset des heures de services \n\n \`\`${success ? statusRequest.message :  statusRequest}\`\``)
 			await interaction.reply({ embeds: [embed] });
 		}
 

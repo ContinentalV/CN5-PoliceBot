@@ -1,9 +1,10 @@
 import Bot from "../../core/client";
 import { GuildMember, PartialGuildMember } from "discord.js";
 import { EventOptions } from "../../types";
-import { logError } from "../../functions/chalkFn";
-import { IdSalaryRoleInit, sendRequest } from "../../functions/utilsFunctions";
-// TODO optimiser laisser que si c un grade salarial ici, et pour tout le reste faire des requette specifique, pour update avatar, name. comme on ajoutera aussi sur l'event message
+import {generateLogMessageEvent, IdSalaryRoleInit, sendRequest} from "../../functions/utilsFunctions";
+import {v4 as uuidv4} from "uuid";
+import {errorLogger, mainLogger} from "../../logger";
+
 export default {
 	event: "guildMemberUpdate",
 
@@ -42,10 +43,14 @@ export default {
 
 		try {
 			await sendRequest("put", "members/rolesUpdate", body);
-
+			const logMessage = generateLogMessageEvent(client, newMember.user.username, newMember.id,  true);
+			mainLogger.info(logMessage);
 		}
-		catch (e: any) {
-			logError(e);
+		catch (err: any) {
+			const errorId = uuidv4();
+			errorLogger.error({ message: err.message, errorId });
+			 console.log( {message: "❌ Pas de communications avec l'API", errorId: errorId})
+
 		}
 
 

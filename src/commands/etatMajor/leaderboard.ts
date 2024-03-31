@@ -1,4 +1,4 @@
-import { CommandOptions } from "../../types";
+import {AgentData, CommandOptions} from "../../types";
 import { logInfo } from "../../functions/chalkFn";
 import {
 	ActionRowBuilder,
@@ -9,22 +9,13 @@ import {
 	EmbedBuilder,
 	GuildMember,
 } from "discord.js";
-import { formatterDate, minToHours, sendRequest } from "../../functions/utilsFunctions";
+import {formatterDate, generateLogMessage, minToHours, sendRequest} from "../../functions/utilsFunctions";
 import { config } from "../../config/config";
+import {errorLogger, mainLogger} from "../../logger";
+import axios from "axios";
+import {v4 as uuidv4} from "uuid";
 
-interface AgentData {
-    discordId: string;
-    username: string;
-    nomRP: string;
-    avatar: string;
-    codeMetier: string;
-    dateJoin: string;
-    matricule: number;
-    dernierPDS: number | null;
-    inService: number;
-    tempsTotalService: number;
-    salary: number;
-}
+
 
 
 export default {
@@ -51,6 +42,8 @@ export default {
 	execute: async (client, interaction, args) => {
 		const row = new ActionRowBuilder();
 		let logs: AgentData[] = [];
+		let success = false;
+		let statusRequest;
 
 		const company = interaction.guild!.nameAcronym;
 
@@ -62,18 +55,16 @@ export default {
 
 
 		try {
-
 			// Data traitement
 			const response = await sendRequest("get", `profile/p/leaderboards?codeMetier=${company}`);
 			const data: AgentData[] = response.dataAll;
-			console.log(data[0]);
-
 			data.sort((a, b) => {
 				return b.tempsTotalService - a.tempsTotalService;
 			});
 			logs = data;
 			const noHoursQuota = data.filter((agent) => agent.tempsTotalService <= 690).map((agent) => `- 🔴 **Quota non remplis** <@${agent.discordId}> \`\`Nombre d'heure: ${minToHours(agent.tempsTotalService)}\`\``).join("\n");
-
+			 let securityLength = 4000;
+			 console.log(noHoursQuota)
 			// pagination setup
 			const itemPerPage = 6;
 			const numberOfPage = Math.ceil(data.length / itemPerPage);
@@ -91,7 +82,6 @@ export default {
 					const worktime = agent.tempsTotalService;
 					const enService = agent.inService ? "🟢🟢" : "🔴🔴";
 					const lastpdsstart = agent.dernierPDS;
-
 					return {
 						name: `\u200b👮 ${nomRP} - ${trueName} - ${mat}`, value: `
 					
@@ -165,22 +155,27 @@ export default {
 			});
 
 			collector.on("end", collected => logInfo(`Collected ${collected.size} interactions.`));
-
+			success = true;
+			statusRequest = data;
+			const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest);
+			mainLogger.info(logMessage);
 		}
-		catch (e) {
-			if (e instanceof Error) {
-				console.log(e);
-				embed.setDescription(`${e.message}`);
+		catch (err:any) {
+			if (axios.isAxiosError(err) && err.response) {
+				embed.setFields({ name: "📛 - Erreur lors de la requette:", value: `${err.response.data.message}` });
+				statusRequest = err.response.data.message;
+				const logMessage = generateLogMessage(interaction.user.id, interaction.user.username, interaction.commandName, success, statusRequest + " - " + err.response.data.errorId + " error on API");
+				mainLogger.warn(logMessage);
+				embed.setFooter({text: `📍 errorId: ${ err.response.data.errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 			}
 			else {
-				console.log(e);
-				embed.setDescription("Une erreur est survenue");
+				const errorId = uuidv4();
+				errorLogger.error({ message: err.message, errorId });
+				statusRequest = "❌ Pas de communications avec l'API";
+				embed.setFooter({text: `📍 errorId: ${errorId}`, iconURL: interaction.user?.displayAvatarURL({ dynamic: true } as any)});
 			}
-
-
 		}
 		finally {
-
 			if (config.permWL.sherif === interaction.user.id) {
 				const matMap = logs.filter((agent) => agent.salary !== 0).map((agent) => agent.matricule + "          " + agent.salary.toLocaleString("en-US", {
 					style: "currency",
@@ -195,7 +190,6 @@ export default {
 				const tauxTva = 0.20;
 				const montantTva = totalSalary * tauxTva;
 				const totalTTC = totalSalary + montantTva;
-				console.log(args.getString("cr-logs"));
 				if (args.getString("cr-logs") !== "cr-logs" || args.getString("cr-logs") === null) return;
 				const content = `
 \`\`\` 
@@ -210,15 +204,11 @@ Total TTC: ${totalTTC.toLocaleString("en-US", { style: "currency", currency: "US
 \`\`\`
 `;
 				if (interaction.member instanceof GuildMember) {
-
 					const member = interaction.member!;
 					await member.send({ embeds: [new EmbedBuilder().setDescription(content)] });
 				}
-
 			}
-
 		}
-
 
 	},
 

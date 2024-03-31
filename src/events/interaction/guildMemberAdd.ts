@@ -2,9 +2,16 @@
 import Bot from "../../core/client";
 import { EventOptions } from "../../types";
 import { logApiResponse, logError } from "../../functions/chalkFn";
-import { generateUniqueMatricule, IdSalaryRoleInit, sendRequest } from "../../functions/utilsFunctions";
+import {
+	generateLogMessage, generateLogMessageEvent,
+	generateUniqueMatricule,
+	IdSalaryRoleInit,
+	sendRequest
+} from "../../functions/utilsFunctions";
 import { EmbedBuilder } from "discord.js";
 import { config } from "../../config/config";
+import {errorLogger, mainLogger} from "../../logger";
+import {v4 as uuidv4} from "uuid";
 
 
 
@@ -15,6 +22,8 @@ export default {
 		const lspdOrBcso = member.guild.nameAcronym.toUpperCase();
 		const guildAcr = member.guild.nameAcronym;
 		const guild: string = member.guild.id;
+		let success = false;
+		let statusRequest;
 		let channel: any;
 		let bcsoRoles;
 		let lspdRoles;
@@ -100,22 +109,27 @@ Cordialement Le Shériff
 			embedDM.setColor("Random");
 			embedDM.setTimestamp();
 			embedDM.setThumbnail(member?.displayAvatarURL({ dynamic: true } as any));
-
 			embedWelcomServer.setColor(guildAcr === "LSPD" ? "Blue" : "DarkOrange");
 			embedWelcomServer.setTimestamp();
 			embedWelcomServer.setFooter({text: `Bienvenue au nouveau ${lspdOrBcso} -> ${nicknameCategory} ${body.matricule}`, iconURL: member.displayAvatarURL()})
 			const response2 = await sendRequest("post", "members/members", body);
-			logApiResponse(`${response2}`);
+			statusRequest = response2;
+			success = true;
+			const logMessage = generateLogMessageEvent(client, body.username, body.discordId,  success,  statusRequest);
+			mainLogger.info(logMessage);
 
 
 		}
 		catch (err: any) {
+			const errorId = uuidv4();
+			errorLogger.error({ message: err.message, errorId });
+			statusRequest = "❌Une erreur est survenue.I";
+			embedWelcomServer.setFooter({text: `📍 errorId: ${errorId}`, iconURL: client.user?.displayAvatarURL({ dynamic: true } as any)});
+		 
 
-			logError(err.message);
-			embedWelcomServer.setDescription(`${err.message}`);
-			embedWelcomServer.setColor("Red");
 		}
 		finally {
+			embedWelcomServer.setDescription(`${statusRequest}`);
 			await channel.send({ embeds: [embedWelcomServer], content: `${member}` });
 			await member.send({ embeds: [embedDM] });
 		}
